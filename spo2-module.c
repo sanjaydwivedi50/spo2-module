@@ -29,33 +29,42 @@ void prepare_egress_pkt(uint8_t pkt_id, unsigned char *pkt) {
 
 void parse_ingress_pkt(uint8_t *pkt, int rx_bytes) {
 
-	int i = 0;
+	int i = 0, j = 0;
 	int pkt_len = pkt[PACKET_LENGTH];
 	int data_start_index = DATA;
-	int data_end_index = pkt_len - 1;
+	int data_end_index;
+	uint8_t buf[64];
 
-	printf("pkt_len = %d\n", pkt_len);
-	if (rx_bytes != pkt_len)
-		return;
+	for (i=0; i<rx_bytes; i++) {
+		if ((pkt[i] == START_CHAR) &&
+		    (pkt[i+2] == PARAM_TYPE))
+			break;
+	}
+	pkt_len = pkt[i+PACKET_LENGTH];
+	data_end_index = pkt_len - 1;
 
-	printf("\nstart char : 0x%x\n", pkt[START_CHARACTER]); 
-	printf("\npacket length : 0x%x\n", pkt[PACKET_LENGTH]);
-	printf("\nparameter_type : 0x%x\n", pkt[PARAMETER_TYPE]); 
-	printf("\npacket type : 0x%x\n", pkt[PACKET_TYPE]);
-	printf("\npacket id : 0x%x\n", pkt[PACKET_ID]); 
-	printf("\npacket serial number : 0x%x", pkt[SERIAL_BYTE_1]);
-	printf("%x", pkt[SERIAL_BYTE_2]);
-	printf("%x", pkt[SERIAL_BYTE_3]);
-	printf("%x", pkt[SERIAL_BYTE_4]);
+	for(j=0; j<pkt_len; j++)
+		buf[j] = pkt[i++];
+
+
+	printf("\nstart char : 0x%x", buf[START_CHARACTER]); 
+	printf("\npacket length : %d", buf[PACKET_LENGTH]);
+	printf("\nparameter_type : 0x%x", buf[PARAMETER_TYPE]); 
+	printf("\npacket type : 0x%x", buf[PACKET_TYPE]);
+	printf("\npacket id : 0x%x", buf[PACKET_ID]); 
+	printf("\npacket serial number : 0x%x", buf[SERIAL_BYTE_1]);
+	printf("%x", buf[SERIAL_BYTE_2]);
+	printf("%x", buf[SERIAL_BYTE_3]);
+	printf("%x", buf[SERIAL_BYTE_4]);
 
 	printf("\npacket_data : ");
 	if (pkt_len > 10) {
 		for (i = data_start_index; i < data_end_index; i++)
-			printf("0x%x ", pkt[i]);
+			printf("0x%x ", buf[i]);
 	}else {
 		printf("Empty");
 	}
-	printf("\npacket checksum : 0x%x\n", pkt[pkt_len - 1]);
+	printf("\npacket checksum : 0x%x\n", buf[pkt_len - 1]);
 }
 
 void get_host_serial_no(unsigned char *serial_no) {
